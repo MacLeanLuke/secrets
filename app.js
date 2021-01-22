@@ -32,7 +32,8 @@ mongoose.connect("mongodb://localhost:27017/userDB", {
 
   //mongodb+srv://capitallion:"+process.env.ATLASPW+"@cluster0.wstkh.mongodb.net
 
-  //
+  // mongodb://localhost:27017
+
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
@@ -41,7 +42,7 @@ mongoose.set("useCreateIndex", true);
 
 const userSchema = new mongoose.Schema({
   email: String,
-  password: String
+  password: String,
   googleId: String,
   secret: String
 });
@@ -66,8 +67,7 @@ passport.deserializeUser(function(id, done) {
 passport.use(new GoogleStrategy({
     clientID: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
-    callbackURL: "http://localhost:3000/auth/google/secrets"//,
-    //userProfileURL: "https://www.googleapis.com/oath2/v3/userinfo"
+    callbackURL: "http://localhost:3000/auth/google/secrets"
   },
   function(accessToken, refreshToken, profile, cb) {
     console.log(profile);
@@ -89,8 +89,8 @@ app.get("/auth/google",
 app.get("/auth/google/secrets",
   passport.authenticate("google", { failureRedirect: "/login" }),
   function(req, res) {
-    // Successful authentication, redirect home.
-    res.redirect("/secrets");
+      // Successful authentication, redirect home.
+      res.redirect("/secrets");
   });
 
 app.get("/login", function(req, res) {
@@ -102,15 +102,23 @@ app.get("/register", function(req, res) {
 });
 
 app.get("/secrets", function(req, res) {
-  User.find({"secret": {$ne: null}}, function(err, foundUsers){
-    if(err){
+  User.find({"secret":{$ne: null}}, function(err, foundUsers){
+    if (err) {
       console.log(err);
     } else {
-      if (foundUsers){
-        res.render("secrets", {userWithSecrets: foundUsers});
+      if (foundUsers) {
+        res.render("secrets", {usersWithSecrets: foundUsers});
       }
     }
   });
+});
+
+app.get("/submit", function(req, res){
+  if (req.isAuthenticated()){
+    res.render("submit");
+  } else {
+    res.redirect("/login")
+  }
 });
 
 app.get("/logout", function(req, res){
@@ -120,9 +128,7 @@ app.get("/logout", function(req, res){
 
 app.post("/register", function(req, res) {
 
-  User.register({
-    username: req.body.username
-  }, req.body.password, function(err, user) {
+  User.register({username: req.body.username}, req.body.password, function(err, user) {
     if (err) {
       console.log(err);
       res.redirect("/register");
@@ -148,6 +154,23 @@ app.post("/login", function(req, res) {
       passport.authenticate("local")(req, res, function() {
         res.redirect("/secrets");
       });
+    }
+  });
+});
+
+app.post("/submit", function(req, res){
+  const submittedSecret = req.body.secret;
+
+  User.findById(req.user.id, function(err, foundUser){
+    if (err){
+      console.log(err);
+    } else {
+      if (foundUser) {
+        foundUser.secret = submittedSecret;
+        foundUser.save(function(){
+          res.redirect("/secrets");
+        });
+      }
     }
   });
 });

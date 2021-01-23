@@ -28,7 +28,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-mongoose.connect("mongodb://localhost:27017/userDB", {
+mongoose.connect("mongodb+srv://capitallion:"+process.env.ATLASPW+"@cluster0.wstkh.mongodb.net/userDB", {
 
   //mongodb+srv://capitallion:"+process.env.ATLASPW+"@cluster0.wstkh.mongodb.net
 

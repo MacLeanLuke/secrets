@@ -86,12 +86,24 @@ app.get("/auth/google",
   passport.authenticate('google', { scope: ["profile"] })
 );
 
+// app.get("/auth/google/secrets",
+//   passport.authenticate("google", { failureRedirect: "/login" }),
+//   function(req, res) {
+//       // Successful authentication, redirect home.
+//       res.redirect("/secrets");
+//   });
+
 app.get("/auth/google/secrets",
-  passport.authenticate("google", { failureRedirect: "/login" }),
-  function(req, res) {
-      // Successful authentication, redirect home.
-      res.redirect("/secrets");
-  });
+
+
+
+    passport.authenticate('google', {
+
+        successRedirect: '/secrets', scope:
+
+            ['email', 'profile']
+
+    }));
 
 app.get("/login", function(req, res) {
   res.render("login");
